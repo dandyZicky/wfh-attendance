@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  auth-credentials-db:
+    image: mysql:8.0
+    container_name: auth-credentials-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: auth_credentials_db
+      MYSQL_USER: auth_user
+      MYSQL_PASSWORD: authpass
+    volumes:
+      - auth_credentials_db_data:/var/lib/mysql
+      - ./db/auth/init.sql:/docker-entrypoint-initdb.d/init.sql:z
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+volumes:
+  auth_credentials_db_data:
+
+networks:
+  app-network:
+    driver: bridge
