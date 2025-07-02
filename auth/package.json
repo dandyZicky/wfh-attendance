@@ -4,7 +4,7 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "dev" : "node-22 --trace-deprecation --import ./register-ts.js --env-file=./.env --watch src/app.ts",
+    "dev" : "node --import ./register-ts.js --env-file=./.env --watch src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
