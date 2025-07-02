@@ -22,8 +22,8 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./Dockerfile
+        file: ./auth/Dockerfile
         push: false
-        tags: my-app:latest
+        tags: auth:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
