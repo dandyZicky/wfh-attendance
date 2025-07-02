@@ -21,7 +21,7 @@ jobs:
     - name: Build Docker image
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./auth
         file: ./auth/Dockerfile
         push: false
         tags: auth:latest
