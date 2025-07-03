@@ -4,21 +4,25 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "dev" : "node --import ./register-ts.js --env-file=./.env --watch src/app.ts",
+    "dev": "node --import ./register-ts.js --env-file=./.env.dev --watch src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed": "node --import ./register-ts.js --env-file=./.env.dev src/seeds/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "bcrypt": "^6.0.0",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.1"
   }
 }
