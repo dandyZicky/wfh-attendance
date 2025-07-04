@@ -12,5 +12,3 @@ router.post("/auth/login", (req, res) => {
 router.post("/auth/logout", (req, res) => {
     auth.logout(req, res);
 });
-
-//
