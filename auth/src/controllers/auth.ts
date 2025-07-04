@@ -1,9 +1,9 @@
 import {CookieOptions, Request, Response} from "express";
 import { compare } from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { AuthRequest } from "../models/auth.js";
-import { findUserByEmail } from "../utils/external/user-management.js";
+import { AuthRequest } from "../types/requests.js";
 import { SECRET_KEY } from "../config/index.js";
+import { findUserByEmail } from "../services/auth.js";
 
 export class Auth {
     async login(req: AuthRequest, res: Response) {
@@ -18,17 +18,19 @@ export class Auth {
             return res.status(400).json({msg: "invalid request"});
         }
 
-        // find userByEmail
-        const {user_id, password_hash} = await findUserByEmail(email);
+        const result = await findUserByEmail(email.toString());
+
+        if (!result.success) {
+            return res.status(500).json({ msg: result.error })
+        }
+
+        const {password_hash, user_id} = result.data;
         
         const isPasswordCorrect = await compare(password.toString(), password_hash);
 
         if (!isPasswordCorrect) {
             return res.status(401).json({msg: "Incorrect password!"});
         }
-
-        // prepare JWT
-
 
         const payload: JwtPayload = {
             sub: user_id,
