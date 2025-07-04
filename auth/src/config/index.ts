@@ -1,0 +1,1 @@
+export const SECRET_KEY = "&(JDSA*J)D&SA*()D&JA";
