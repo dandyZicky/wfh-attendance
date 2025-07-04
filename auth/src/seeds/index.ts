@@ -2,7 +2,7 @@ import { authDB } from "../db/index.js";
 import { mockUsers } from "./users.js";
 import * as bcrypt from "bcrypt";
 
-const saltRounds = 1;
+const saltRounds = 11;
 const table = "users";
 
 async function seedDatabase() {
