@@ -9,10 +9,6 @@ router.post("/auth/login", (req, res) => {
     auth.login(req, res);
 });
 
-router.post("/auth/register", (req, res) => {
-    auth.register(req, res);
-});
-
 router.post("/auth/logout", (req, res) => {
     auth.logout(req, res);
 });

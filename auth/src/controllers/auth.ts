@@ -5,6 +5,8 @@ import { AuthRequest } from "../types/requests.js";
 import { SECRET_KEY } from "../config/index.js";
 import { findUserByEmail } from "../services/auth.js";
 
+const COOKIE_NAME = "wfh-attendance-auth";
+
 export class Auth {
     async login(req: AuthRequest, res: Response) {
         if (!req.body) {
@@ -43,20 +45,17 @@ export class Auth {
         // Set cookie
         const option: CookieOptions = {
             httpOnly: true,
-            expires: new Date(Date.now() + 600000)
+            expires: new Date(Date.now() + (1000 * 3600))
         }
 
-        res.cookie("wfh-attendance-auth", signed, option);
+        res.cookie(COOKIE_NAME, signed, option);
 
         return res.status(200).json({msg: "Correct password!"});
     }
 
-    logout(req: Request, res: Response) {
-        res.status(200).json({msg: "logged out"})
-    }
-
-    register(req: Request, res: Response) {
-        res.status(200).json({msg: "Registered!"})
+    async logout(req: Request, res: Response) {
+        res.clearCookie(COOKIE_NAME);
+        res.status(200).json({msg: "logged out"});
     }
 }
 
