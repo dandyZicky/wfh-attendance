@@ -10,20 +10,50 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      
-    - name: Build Docker image
+
+    - name: Check for Auth service changes
+      uses: dorny/paths-filter@v2
+      id: auth_changes
+      with:
+        filters: |
+          auth:
+            - 'auth/**'
+
+    - name: Build Auth Docker image
+      if: steps.auth_changes.outputs.auth == 'true'
       uses: docker/build-push-action@v5
       with:
         context: ./auth
         file: ./auth/Dockerfile
         push: false
         tags: auth:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Check for User Management service changes
+      uses: dorny/paths-filter@v2
+      id: user_management_changes
+      with:
+        filters: |
+          user-management:
+            - 'user-management/**'
+
+    - name: Build User Management Docker image
+      if: steps.user_management_changes.outputs.user-management == 'true'
+      uses: docker/build-push-action@v5
+      with:
+        context: ./user-management
+        file: ./user-management/Dockerfile
+        push: false
+        tags: user-management:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
