@@ -1,20 +1,26 @@
 USE user_management_db;
 
-CREATE TABLE IF NOT EXISTS roles (
-    role_id INT NOT NULL PRIMARY KEY,
-    role VARCHAR(255)
+CREATE TABLE IF NOT EXISTS departments (
+    department_id INT AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS employees (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255),
-    email VARCHAR(255),
-    role_id INT,
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
+    user_key CHAR(36) UNIQUE NOT NULL,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    department_id INT NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    hire_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (role_id) REFERENCES roles(role_id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 
-INSERT INTO roles (role_id, role) VALUES (0, "HR");
-INSERT INTO roles (role_id, role) VALUES (1, "Staff");
+INSERT INTO departments (department_name) VALUES ("HUMAN RESOURCE");
+INSERT INTO departments (department_name) VALUES ("FINANCE");
+INSERT INTO departments (department_name) VALUES ("INFORMATION AND TECHNOLOGY");

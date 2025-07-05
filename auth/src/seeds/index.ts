@@ -6,10 +6,10 @@ const saltRounds = 11;
 const table = "users";
 
 async function seedDatabase() {
-    for (const {email, username, password, user_id} of mockUsers) {
+    for (const {email, username, password, user_key} of mockUsers) {
         const hash = await bcrypt.hash(password, saltRounds);
-        const stmt = `INSERT INTO ${table} (email, username, password_hash, user_id) VALUES (?, ?, ?, ?)`;
-        const values = [email, username, hash, user_id];
+        const stmt = `INSERT INTO ${table} (user_key, email, username, password_hash) VALUES (?, ?, ?, ?)`;
+        const values = [user_key, email, username, hash];
 
         const conn = await authDB.getConnection();
         
