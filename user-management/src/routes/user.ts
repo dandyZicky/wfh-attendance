@@ -21,3 +21,7 @@ router.put("/users/:id", authenticateJWT, authorizeDepartment, (req, res) => {
 router.delete("/users/:id", authenticateJWT, authorizeDepartment, (req, res) => {
     userController.deleteUser(req, res);
 });
+
+router.get("/users/department/:user_key", (req, res) => {
+    userController.getDepartmentByUserKey(req, res);
+});

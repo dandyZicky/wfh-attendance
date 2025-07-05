@@ -115,4 +115,22 @@ export class UserController {
             res.status(500).json({ msg: "Internal server error" });
         }
     }
+    async getDepartmentByUserKey(req: Request, res: Response) {
+        const { user_key } = req.params;
+        try {
+            const [rows] = await userManagementDB.execute<RowDataPacket[]>(
+                "SELECT department_id FROM employees WHERE user_key = ?",
+                [user_key]
+            );
+
+            if (rows.length > 0) {
+                res.status(200).json({ department_id: rows[0].department_id });
+            } else {
+                res.status(404).json({ msg: "User not found" });
+            }
+        } catch (error) {
+            console.error("Error fetching department by user key:", error);
+            res.status(500).json({ msg: "Internal server error" });
+        }
+    }
 }
