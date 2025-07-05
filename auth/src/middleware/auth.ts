@@ -3,51 +3,46 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import { SECRET_KEY } from "../config/index.js";
 
-interface AuthRequest extends Request {
-    userKey?: string;
+interface MidAuthRequest extends Request {
+    headers: {
+        authorization?: string;
+        "x-user-key"?: string;
+    };
 }
 
-export const authenticateJWT: RequestHandler = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticateJWT: RequestHandler = (req: MidAuthRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
+    const cookieToken = req.cookies?.["wfh-attendance-auth"];
 
-    if (authHeader) {
-        const token = authHeader.split(" ")[1];
+    const token = authHeader ? authHeader.split(" ")[1] : cookieToken;
 
-        jwt.verify(token, SECRET_KEY, (err: jwt.VerifyErrors | null, user: jwt.JwtPayload | string | undefined) => {
-            if (err) {
-                res.status(403).json({ msg: "Forbidden: Invalid token" });
-                return;
-            }
-            req.userKey = (user as { sub: string }).sub;
-            next();
-            return;
-        });
-    } else if (req.cookies && req.cookies["wfh-attendance-auth"]) {
-        const token = req.cookies["wfh-attendance-auth"];
-        jwt.verify(token, SECRET_KEY, (err: jwt.VerifyErrors | null, user: jwt.JwtPayload | string | undefined) => {
-            if (err) {
-                res.status(403).json({ msg: "Forbidden: Invalid token" });
-                return;
-            }
-            req.userKey = (user as { sub: string }).sub;
-            next();
-            return;
-        });
-    } else {
+    if (!token) {
         res.status(401).json({ msg: "Unauthorized: No token provided" });
         return;
     }
+
+    jwt.verify(token, SECRET_KEY, (err: jwt.VerifyErrors | null, user: jwt.JwtPayload | string | undefined) => {
+        if (err) {
+            res.status(403).json({ msg: "Forbidden: Invalid token" });
+            return;
+        }
+        req.headers["x-user-key"] = (user as { sub: string }).sub;
+        req.headers.authorization = "Bearer " + token;
+        next();
+    });
+
 };
 
-export const authorizeDepartment: RequestHandler = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.userKey) {
-        res.status(401).json({ msg: "Unauthorized: User key not found" });
+export const authorizeDepartment: RequestHandler = async (req: MidAuthRequest, res: Response, next: NextFunction) => {
+    const userKey = req.headers["x-user-key"];
+    if (!userKey) {
+        res.status(401).json({ msg: "Unauthorized: User key not found in headers" });
         return;
     }
 
     try {
         const userManagementServiceUrl = process.env.USER_MANAGEMENT_SERVICE_URL || "http://localhost:3000";
-        const response = await axios.get(`${userManagementServiceUrl}/users/department/${req.userKey}`);
+        const response = await axios.get(`${userManagementServiceUrl}/users/department/${userKey}`);
         const { department_id } = response.data;
 
         if (department_id === 1) { // department_id 1 for HUMAN RESOURCE
@@ -58,7 +53,6 @@ export const authorizeDepartment: RequestHandler = async (req: AuthRequest, res:
             return;
         }
     } catch (error: any) {
-        console.error("Error in authorizeDepartment middleware (auth service):", error);
         if (error.response && error.response.data && error.response.data.msg) {
             res.status(error.response.status).json({ msg: error.response.data.msg });
             return;
