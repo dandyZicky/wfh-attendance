@@ -12,3 +12,11 @@ router.post("/auth/login", (req, res) => {
 router.post("/auth/logout", (req, res) => {
     auth.logout(req, res);
 });
+
+router.post("/auth/register", (req, res) => {
+    auth.register(req, res);
+});
+
+router.delete("/auth/users/:user_id", (req, res) => {
+    auth.deleteUser(req, res);
+});

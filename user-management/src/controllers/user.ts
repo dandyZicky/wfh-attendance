@@ -1,30 +1,54 @@
 import { Request, Response } from "express";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { userManagementDB } from "../db/index.js";
-import { v4 as uuidv4 } from 'uuid';
+import axios from "axios";
+import { CreateUserRequest } from "../types/requests.js";
+import { uuidv7 } from "uuidv7";
 
 export class UserController {
-    async createUser(req: Request, res: Response) {
-        const { username, email, role_id, first_name, last_name } = req.body;
-        const user_id = uuidv4(); // Generate a unique user ID
+    async createUser(req: CreateUserRequest, res: Response) {
+        if (!req.body) {
+            return res.status(400).json({msg: "Invalid request"});
+        }
 
-        if (!username || !email || role_id === undefined || !first_name || !last_name) {
+        const { username, email, password, department_id, first_name, last_name } = req.body;
+
+        if (!username || !email || !password || department_id === undefined || !first_name || !last_name) {
             return res.status(400).json({ msg: "All fields are required" });
         }
 
+        const user_key = uuidv7();
+        const hire_date = new Date(Date.now());
+
         try {
+            const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:3001";
+            const authResponse = await axios.post(`${authServiceUrl}/auth/register`, {
+                user_key,
+                username,
+                email,
+                password
+            });
+
+            if (authResponse.status !== 201) {
+                return res.status(authResponse.status).json({ msg: authResponse.data.msg || "Auth service registration failed" });
+            }
+
             const [result] = await userManagementDB.execute<ResultSetHeader>(
-                "INSERT INTO employees (username, email, role_id, first_name, last_name, id) VALUES (?, ?, ?, ?, ?, ?)",
-                [username, email, role_id, first_name, last_name, user_id]
+                "INSERT INTO employees (user_key, username, email, department_id, first_name, last_name, hire_date) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [user_key, username, email, department_id, first_name, last_name, hire_date]
             );
 
             if (result.affectedRows > 0) {
-                res.status(201).json({ msg: "User created successfully", user_id: user_id });
+                res.status(201).json({ msg: "User created successfully", user_key });
             } else {
-                res.status(500).json({ msg: "Failed to create user" });
+                await axios.delete(`${authServiceUrl}/auth/users/${user_key}`);
+                res.status(500).json({ msg: "Failed to create user in user-management, auth user rolled back" });
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error creating user:", error);
+            if (error.response && error.response.data && error.response.data.msg) {
+                return res.status(error.response.status).json({ msg: error.response.data.msg });
+            }
             res.status(500).json({ msg: "Internal server error" });
         }
     }

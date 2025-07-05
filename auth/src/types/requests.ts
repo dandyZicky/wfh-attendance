@@ -6,3 +6,12 @@ export interface AuthRequest extends Request {
         password: String,
     }
 }
+
+export interface RegisterRequest extends Request {
+    body: {
+        user_key: string;
+        username: string;
+        email: string;
+        password: string;
+    };
+}
