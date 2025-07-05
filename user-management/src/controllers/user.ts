@@ -8,7 +8,7 @@ import { uuidv7 } from "uuidv7";
 export class UserController {
     async createUser(req: CreateUserRequest, res: Response) {
         if (!req.body) {
-            return res.status(400).json({msg: "Invalid request"});
+            return res.status(400).json({ msg: "Invalid request" });
         }
 
         const { username, email, password, department_id, first_name, last_name } = req.body;
@@ -21,12 +21,17 @@ export class UserController {
         const hire_date = new Date(Date.now());
 
         try {
-            const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:3001";
+            const authServiceUrl = process.env.AUTH_SERVICE_URL || "http://localhost:3000";
             const authResponse = await axios.post(`${authServiceUrl}/auth/register`, {
                 user_key,
                 username,
                 email,
                 password
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: req.headers.authorization || ""
+                }
             });
 
             if (authResponse.status !== 201) {
