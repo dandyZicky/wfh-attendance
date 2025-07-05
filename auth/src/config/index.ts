@@ -1,1 +1,1 @@
-export const SECRET_KEY = "&(JDSA*J)D&SA*()D&JA";
+export const SECRET_KEY = process.env.JWT_SECRET || "&(JDSA*J)D&SA*()D&JA";
