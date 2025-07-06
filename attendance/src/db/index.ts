@@ -1,0 +1,1 @@
+export { attendanceDB } from "./config.js"; 
