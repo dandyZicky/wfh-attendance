@@ -4,11 +4,14 @@ interface User {
   user_key: string;
   email: string;
   username: string;
+  department_id?: number;
+  department_name?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isHR: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -33,6 +36,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const isAuthenticated = !!user;
+  const isHR = user?.department_id === 1;
+
+  const fetchUserDepartment = async (userKey: string): Promise<{ department_id: number; department_name: string } | null> => {
+    try {
+      const response = await fetch(`http://localhost:3001/users/department/${userKey}`, {
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          department_id: data.department_id,
+          department_name: data.department_name || 'Unknown Department'
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching user department:', error);
+      return null;
+    }
+  };
 
   const checkAuthStatus = async () => {
     try {
@@ -46,7 +70,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         console.log('Auth check successful, user data:', userData);
-        setUser(userData.user);
+        
+        // Fetch department information
+        const departmentInfo = await fetchUserDepartment(userData.user.user_key);
+        
+        setUser({
+          ...userData.user,
+          ...departmentInfo
+        });
       } else {
         const errorData = await response.json();
         console.log('Auth check failed:', errorData);
@@ -79,7 +110,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const data = await response.json();
         // The login endpoint returns user data in the response
         if (data.user) {
-          setUser(data.user);
+          // Fetch department information
+          const departmentInfo = await fetchUserDepartment(data.user.user_key);
+          
+          setUser({
+            ...data.user,
+            ...departmentInfo
+          });
         } else {
           // If no user data in response, we need to fetch it
           await checkAuthStatus();
@@ -112,6 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     isAuthenticated,
+    isHR,
     login,
     logout,
     loading,

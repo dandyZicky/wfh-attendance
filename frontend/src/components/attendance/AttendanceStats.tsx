@@ -13,7 +13,7 @@ interface AttendanceStats {
 }
 
 const AttendanceStats: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isHR } = useAuth();
   const [stats, setStats] = useState<AttendanceStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
@@ -31,12 +31,19 @@ const AttendanceStats: React.FC = () => {
 
     try {
       const params = new URLSearchParams();
-      if (filters.start_date) params.append('start_date', filters.start_date);
-      if (filters.end_date) params.append('end_date', filters.end_date);
-      if (filters.user_key) params.append('user_key', filters.user_key);
-      if (filters.department_id) params.append('department_id', filters.department_id);
+      params.append('start_date', filters.start_date);
+      params.append('end_date', filters.end_date);
+      
+      // For regular employees, only show their own stats
+      if (!isHR) {
+        params.append('user_key', user?.user_key || '');
+      } else {
+        // For HR, allow filtering by user and department
+        if (filters.user_key) params.append('user_key', filters.user_key);
+        if (filters.department_id) params.append('department_id', filters.department_id);
+      }
 
-      const response = await fetch(`http://localhost:3002/attendance/stats?${params}`, {
+      const response = await fetch(`http://localhost:3003/attendance/stats?${params}`, {
         credentials: 'include',
       });
 
@@ -90,7 +97,9 @@ const AttendanceStats: React.FC = () => {
   return (
     <Card>
       <Card.Header>
-        <Card.Title className="mb-0">Attendance Statistics</Card.Title>
+        <Card.Title className="mb-0">
+          {isHR ? 'Department Attendance Statistics' : 'My Attendance Statistics'}
+        </Card.Title>
       </Card.Header>
       <Card.Body>
         {message && (
@@ -99,61 +108,97 @@ const AttendanceStats: React.FC = () => {
           </Alert>
         )}
 
-        <Form onSubmit={handleFilterSubmit} className="mb-4">
-          <Row>
-            <Col md={3}>
-              <Form.Group className="mb-3">
-                <Form.Label>Start Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="start_date"
-                  value={filters.start_date}
-                  onChange={handleFilterChange}
-                />
-              </Form.Group>
-            </Col>
-            <Col md={3}>
-              <Form.Group className="mb-3">
-                <Form.Label>End Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="end_date"
-                  value={filters.end_date}
-                  onChange={handleFilterChange}
-                />
-              </Form.Group>
-            </Col>
-            <Col md={3}>
-              <Form.Group className="mb-3">
-                <Form.Label>User Key (Optional)</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="user_key"
-                  value={filters.user_key}
-                  onChange={handleFilterChange}
-                  placeholder="Enter user key"
-                />
-              </Form.Group>
-            </Col>
-            <Col md={3}>
-              <Form.Group className="mb-3">
-                <Form.Label>Department ID (Optional)</Form.Label>
-                <Form.Control
-                  type="number"
-                  name="department_id"
-                  value={filters.department_id}
-                  onChange={handleFilterChange}
-                  placeholder="Enter department ID"
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-          <div className="d-flex justify-content-end">
-            <Button type="submit" variant="primary" disabled={loading}>
-              {loading ? 'Loading...' : 'Update Statistics'}
-            </Button>
+        {isHR && (
+          <Form onSubmit={handleFilterSubmit} className="mb-4">
+            <Row>
+              <Col md={3}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Start Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="start_date"
+                    value={filters.start_date}
+                    onChange={handleFilterChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={3}>
+                <Form.Group className="mb-3">
+                  <Form.Label>End Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="end_date"
+                    value={filters.end_date}
+                    onChange={handleFilterChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={3}>
+                <Form.Group className="mb-3">
+                  <Form.Label>User Key (Optional)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="user_key"
+                    value={filters.user_key}
+                    onChange={handleFilterChange}
+                    placeholder="Enter user key"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={3}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Department ID (Optional)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="department_id"
+                    value={filters.department_id}
+                    onChange={handleFilterChange}
+                    placeholder="Enter department ID"
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <div className="d-flex justify-content-end">
+              <Button type="submit" variant="primary" disabled={loading}>
+                {loading ? 'Loading...' : 'Apply Filters'}
+              </Button>
+            </div>
+          </Form>
+        )}
+
+        {!isHR && (
+          <div className="mb-4">
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Start Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="start_date"
+                    value={filters.start_date}
+                    onChange={handleFilterChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>End Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="end_date"
+                    value={filters.end_date}
+                    onChange={handleFilterChange}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <div className="d-flex justify-content-end">
+              <Button onClick={fetchStats} variant="primary" disabled={loading}>
+                {loading ? 'Loading...' : 'Refresh Stats'}
+              </Button>
+            </div>
           </div>
-        </Form>
+        )}
 
         {loading ? (
           <div className="text-center py-4">
@@ -162,125 +207,60 @@ const AttendanceStats: React.FC = () => {
             </div>
           </div>
         ) : stats ? (
-          <div>
-            {/* Summary Cards */}
-            <Row className="mb-4">
-              <Col md={3}>
-                <Card className="text-center">
-                  <Card.Body>
-                    <h3 className="text-primary">{stats.total_days}</h3>
-                    <p className="mb-0">Total Days</p>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={3}>
-                <Card className="text-center">
-                  <Card.Body>
-                    <h3 className="text-success">{stats.present_days}</h3>
-                    <p className="mb-0">Present Days</p>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={3}>
-                <Card className="text-center">
-                  <Card.Body>
-                    <h3 className="text-warning">{stats.late_days}</h3>
-                    <p className="mb-0">Late Days</p>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={3}>
-                <Card className="text-center">
-                  <Card.Body>
-                    <h3 className="text-danger">{stats.absent_days}</h3>
-                    <p className="mb-0">Absent Days</p>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-
-            {/* Progress Bars */}
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Attendance Rate</h5>
-                <ProgressBar 
-                  now={getAttendanceRate()} 
-                  variant="success" 
-                  label={`${getAttendanceRate()}%`}
-                  className="mb-3"
-                />
-                <small className="text-muted">
-                  {stats.present_days} out of {stats.total_days} days present
-                </small>
-              </Col>
-              <Col md={6}>
-                <h5>WFH Rate</h5>
-                <ProgressBar 
-                  now={getWFHRate()} 
-                  variant="primary" 
-                  label={`${getWFHRate()}%`}
-                  className="mb-3"
-                />
-                <small className="text-muted">
-                  {stats.wfh_days} out of {stats.total_days} days working from home
-                </small>
-              </Col>
-            </Row>
-
-            {/* Detailed Statistics */}
-            <Row>
-              <Col md={6}>
-                <Card>
-                  <Card.Header>
-                    <h6 className="mb-0">Attendance Breakdown</h6>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span>Present</span>
-                      <span className="text-success">{stats.present_days} ({calculatePercentage(stats.present_days, stats.total_days)}%)</span>
+          <Row>
+            <Col md={6}>
+              <Card className="mb-3">
+                <Card.Body>
+                  <Card.Title>Attendance Overview</Card.Title>
+                  <div className="row text-center">
+                    <div className="col-4">
+                      <h4 className="text-success">{stats.present_days}</h4>
+                      <small>Present</small>
                     </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span>Late</span>
-                      <span className="text-warning">{stats.late_days} ({calculatePercentage(stats.late_days, stats.total_days)}%)</span>
+                    <div className="col-4">
+                      <h4 className="text-danger">{stats.absent_days}</h4>
+                      <small>Absent</small>
                     </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span>Half Day</span>
-                      <span className="text-info">{stats.half_days} ({calculatePercentage(stats.half_days, stats.total_days)}%)</span>
+                    <div className="col-4">
+                      <h4 className="text-warning">{stats.late_days}</h4>
+                      <small>Late</small>
                     </div>
-                    <div className="d-flex justify-content-between">
-                      <span>Absent</span>
-                      <span className="text-danger">{stats.absent_days} ({calculatePercentage(stats.absent_days, stats.total_days)}%)</span>
+                  </div>
+                  <div className="mt-3">
+                    <strong>Attendance Rate:</strong> {calculatePercentage(stats.present_days, stats.total_days)}%
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            
+            <Col md={6}>
+              <Card className="mb-3">
+                <Card.Body>
+                  <Card.Title>Work Location</Card.Title>
+                  <div className="row text-center">
+                    <div className="col-6">
+                      <h4 className="text-primary">{stats.wfh_days}</h4>
+                      <small>WFH Days</small>
                     </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={6}>
-                <Card>
-                  <Card.Header>
-                    <h6 className="mb-0">Work Location Breakdown</h6>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span>Work From Home</span>
-                      <span className="text-primary">{stats.wfh_days} ({calculatePercentage(stats.wfh_days, stats.total_days)}%)</span>
+                    <div className="col-6">
+                      <h4 className="text-secondary">{stats.office_days}</h4>
+                      <small>Office Days</small>
                     </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span>Office</span>
-                      <span className="text-secondary">{stats.office_days} ({calculatePercentage(stats.office_days, stats.total_days)}%)</span>
-                    </div>
-                    <div className="d-flex justify-content-between">
-                      <span>Client Site</span>
-                      <span className="text-info">
-                        {stats.total_days - stats.wfh_days - stats.office_days} ({calculatePercentage(stats.total_days - stats.wfh_days - stats.office_days, stats.total_days)}%)
-                      </span>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-          </div>
+                  </div>
+                  <div className="mt-3">
+                    <strong>WFH Rate:</strong> {calculatePercentage(stats.wfh_days, stats.total_days)}%
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
         ) : (
-          <Alert variant="info">No statistics available for the selected filters.</Alert>
+          <Alert variant="info">
+            {isHR 
+              ? 'No attendance statistics found for the selected filters.' 
+              : 'No attendance statistics found for the selected date range.'
+            }
+          </Alert>
         )}
       </Card.Body>
     </Card>

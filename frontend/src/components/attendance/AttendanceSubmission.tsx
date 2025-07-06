@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Form, Button, Alert, Row, Col } from 'react-bootstrap';
+import { Card, Form, Button, Alert, Row, Col, Image } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
 
 interface AttendanceSubmissionData {
@@ -9,12 +9,14 @@ interface AttendanceSubmissionData {
   work_location: 'office' | 'home' | 'client_site';
   status: 'present' | 'absent' | 'late' | 'half_day';
   notes?: string;
+  selfie?: File;
 }
 
 const AttendanceSubmission: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   
   const [formData, setFormData] = useState<AttendanceSubmissionData>({
     date: new Date().toISOString().split('T')[0], // Today's date
@@ -30,19 +32,63 @@ const AttendanceSubmission: React.FC = () => {
     }));
   };
 
+  const handleSelfieChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setMessage({ type: 'danger', text: 'Please select an image file' });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ type: 'danger', text: 'Image size must be less than 5MB' });
+        return;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        selfie: file
+      }));
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSelfiePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
     try {
-      const response = await fetch('http://localhost:3002/attendance/submit', {
+      const formDataToSend = new FormData();
+      formDataToSend.append('date', formData.date);
+      formDataToSend.append('work_location', formData.work_location);
+      formDataToSend.append('status', formData.status);
+      
+      if (formData.check_in_time) {
+        formDataToSend.append('check_in_time', formData.check_in_time);
+      }
+      if (formData.check_out_time) {
+        formDataToSend.append('check_out_time', formData.check_out_time);
+      }
+      if (formData.notes) {
+        formDataToSend.append('notes', formData.notes);
+      }
+      if (formData.selfie) {
+        formDataToSend.append('selfie', formData.selfie);
+      }
+
+      const response = await fetch('http://localhost:3003/attendance/submit', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
-        body: JSON.stringify(formData),
+        body: formDataToSend,
       });
 
       const data = await response.json();
@@ -57,6 +103,7 @@ const AttendanceSubmission: React.FC = () => {
           check_out_time: '',
           notes: ''
         }));
+        setSelfiePreview(null);
       } else {
         setMessage({ type: 'danger', text: data.msg || 'Failed to submit attendance' });
       }
@@ -149,6 +196,29 @@ const AttendanceSubmission: React.FC = () => {
               <option value="office">Office</option>
               <option value="client_site">Client Site</option>
             </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Selfie (Optional)</Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/*"
+              onChange={handleSelfieChange}
+              className="mb-2"
+            />
+            <Form.Text className="text-muted">
+              Upload a selfie to verify your attendance. Max size: 5MB. Supported formats: JPG, PNG, GIF
+            </Form.Text>
+            {selfiePreview && (
+              <div className="mt-2">
+                <Image 
+                  src={selfiePreview} 
+                  alt="Selfie preview" 
+                  style={{ maxWidth: '200px', maxHeight: '200px' }}
+                  className="border rounded"
+                />
+              </div>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3">
