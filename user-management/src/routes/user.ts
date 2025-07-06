@@ -6,6 +6,10 @@ export const router = Router();
 
 const userController = new UserController();
 
+router.get("/users", authenticateJWT, authorizeDepartment, (req, res) => {
+    userController.getAllUsers(req, res);
+});
+
 router.post("/users", authenticateJWT, authorizeDepartment, (req, res) => {
     userController.createUser(req, res);
 });
