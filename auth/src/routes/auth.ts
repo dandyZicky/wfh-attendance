@@ -14,6 +14,10 @@ router.post("/auth/logout", (req, res) => {
     auth.logout(req, res);
 });
 
+router.get("/auth/verify", authenticateJWT, (req, res) => {
+    auth.verify(req, res);
+});
+
 router.post("/auth/register", authenticateJWT, authorizeDepartment, (req, res) => {
     auth.register(req, res);
 });

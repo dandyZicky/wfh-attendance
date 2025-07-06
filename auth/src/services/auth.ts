@@ -22,6 +22,25 @@ export const findUserByEmail = async (email: string): Promise<Result<AuthUserEnt
 
 }
 
+export const findUserByUserKey = async (user_key: string): Promise<Result<AuthUserEntity, string>> => {
+    if (!user_key) {
+        return {success: false, error: "User key empty"} ;
+    }
+
+    const [rows] = await authDB.execute<RowDataPacket[]>(
+        "SELECT user_key, email, username, password_hash FROM users WHERE user_key = ?",
+        [user_key]
+    );
+    
+    if (rows.length > 0) {
+        const user = rows[0] as AuthUserEntity;
+        return { success: true, data: user };
+    } else {
+        return {success: false, error: "User not found"};
+    }
+
+}
+
 export const createUser = async (email: string, username: string, password_hash: string, user_key: string): Promise<Result<any, string>> => {
     if (!email || !username || !password_hash || !user_key) {
         return { success: false, error: "All fields are required" };

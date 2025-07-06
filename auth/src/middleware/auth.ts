@@ -8,15 +8,21 @@ interface MidAuthRequest extends Request {
         authorization?: string;
         "x-user-key"?: string;
     };
+    user?: any;
 }
 
 export const authenticateJWT: RequestHandler = (req: MidAuthRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     const cookieToken = req.cookies?.["wfh-attendance-auth"];
 
+    console.log('Auth middleware - cookies:', req.cookies);
+    console.log('Auth middleware - cookie token:', cookieToken);
+    console.log('Auth middleware - auth header:', authHeader);
+
     const token = authHeader ? authHeader.split(" ")[1] : cookieToken;
 
     if (!token) {
+        console.log('Auth middleware - no token found');
         res.status(401).json({ msg: "Unauthorized: No token provided" });
         return;
     }
@@ -28,6 +34,7 @@ export const authenticateJWT: RequestHandler = (req: MidAuthRequest, res: Respon
         }
         req.headers["x-user-key"] = (user as { sub: string }).sub;
         req.headers.authorization = "Bearer " + token;
+        req.user = user; // Attach user data to request
         next();
     });
 
