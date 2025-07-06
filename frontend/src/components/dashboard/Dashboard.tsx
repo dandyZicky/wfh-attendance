@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button, Navbar, Nav } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import AttendancePage from '../attendance/AttendancePage';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showAttendance, setShowAttendance] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -35,32 +37,47 @@ const Dashboard: React.FC = () => {
         </Container>
       </Navbar>
 
-      <Container>
-        <Row>
-          <Col md={6}>
-            <Card>
-              <Card.Body>
-                <Card.Title>WFH Attendance Submission</Card.Title>
-                <Card.Text>
-                  Submit your Work From Home attendance for the day.
-                </Card.Text>
-                <Button variant="primary">Submit</Button>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={6}>
-            <Card>
-              <Card.Body>
-                <Card.Title>WFH Attendance Viewer (HR Admin)</Card.Title>
-                <Card.Text>
-                  View all WFH attendance submissions.
-                </Card.Text>
-                <Button variant="secondary">View Submissions</Button>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+      {showAttendance ? (
+        <div>
+          <div className="mb-3">
+            <Button variant="outline-secondary" onClick={() => setShowAttendance(false)}>
+              ← Back to Dashboard
+            </Button>
+          </div>
+          <AttendancePage />
+        </div>
+      ) : (
+        <Container>
+          <Row>
+            <Col md={6}>
+              <Card>
+                <Card.Body>
+                  <Card.Title>WFH Attendance Management</Card.Title>
+                  <Card.Text>
+                    Submit your Work From Home attendance, view records, and check statistics.
+                  </Card.Text>
+                  <Button variant="primary" onClick={() => setShowAttendance(true)}>
+                    Manage Attendance
+                  </Button>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={6}>
+              <Card>
+                <Card.Body>
+                  <Card.Title>Quick Actions</Card.Title>
+                  <Card.Text>
+                    Access attendance features and system management.
+                  </Card.Text>
+                  <Button variant="secondary" onClick={() => setShowAttendance(true)}>
+                    View Attendance
+                  </Button>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      )}
     </div>
   );
 };
