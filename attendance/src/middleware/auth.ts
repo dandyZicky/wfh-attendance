@@ -1,12 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import axios from "axios";
+import { log } from "console";
 
-const SECRET_KEY = process.env.JWT_SECRET || "your-secret-key";
+const SECRET_KEY = process.env.JWT_SECRET || "&(JDSA*J)D&SA*()D&JA";
 
 export const authenticateJWT = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     const cookieToken = req.cookies?.["wfh-attendance-auth"];
+
+    // console.log(authHeader, cookieToken);
 
     if (!authHeader && !cookieToken) {
         return res.status(401).json({ msg: "No token provided" });

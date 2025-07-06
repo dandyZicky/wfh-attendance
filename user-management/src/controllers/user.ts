@@ -120,16 +120,32 @@ export class UserController {
             res.status(500).json({ msg: "Internal server error" });
         }
     }
+    async getAllUsers(req: Request, res: Response) {
+        try {
+            const [rows] = await userManagementDB.execute<RowDataPacket[]>(
+                "SELECT id, username, email, first_name, last_name, department_id, hire_date, created_at FROM employees ORDER BY created_at DESC"
+            );
+
+            res.status(200).json(rows);
+        } catch (error) {
+            console.error("Error fetching all users:", error);
+            res.status(500).json({ msg: "Internal server error" });
+        }
+    }
+
     async getDepartmentByUserKey(req: Request, res: Response) {
         const { user_key } = req.params;
         try {
             const [rows] = await userManagementDB.execute<RowDataPacket[]>(
-                "SELECT department_id FROM employees WHERE user_key = ?",
+                "SELECT e.department_id, d.department_name FROM employees e JOIN departments d ON e.department_id = d.department_id WHERE e.user_key = ?",
                 [user_key]
             );
 
             if (rows.length > 0) {
-                res.status(200).json({ department_id: rows[0].department_id });
+                res.status(200).json({ 
+                    department_id: rows[0].department_id,
+                    department_name: rows[0].department_name 
+                });
             } else {
                 res.status(404).json({ msg: "User not found" });
             }

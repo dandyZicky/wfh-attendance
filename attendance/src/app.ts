@@ -3,14 +3,14 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { router } from "./routes/attendance.js";
 
-const port = process.env.PORT || 3002;
+const port = process.env.PORT || 3003;
 const app = express();
 
 app.use(urlencoded({ extended: true }));
 app.use(json());
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: "http://localhost:3002",
     credentials: true,
 }));
 
