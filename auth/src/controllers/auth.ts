@@ -36,6 +36,8 @@ export class Auth {
 
         const payload: JwtPayload = {
             sub: user_key,
+            email: email,
+            username: result.data.username || email,
             iat: Math.floor(Date.now() / 1000),
             exp: Math.floor(Date.now() / 1000) + (60 * 60)
         };
@@ -45,17 +47,51 @@ export class Auth {
         // Set cookie
         const option: CookieOptions = {
             httpOnly: true,
+            sameSite: 'lax',
+            secure: false, // Set to true in production with HTTPS
             expires: new Date(Date.now() + (1000 * 3600))
         }
 
         res.cookie(COOKIE_NAME, signed, option);
 
-        return res.status(200).json({msg: "Correct password!"});
+        // Return user data along with success message
+        return res.status(200).json({
+            msg: "Correct password!",
+            user: {
+                user_key: user_key,
+                email: email,
+                username: result.data.username || email // fallback to email if username not available
+            }
+        });
     }
 
     async logout(req: Request, res: Response) {
-        res.clearCookie(COOKIE_NAME);
+        res.clearCookie(COOKIE_NAME, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: false
+        });
         res.status(200).json({msg: "logged out"});
+    }
+
+    async verify(req: Request, res: Response) {
+        // The authenticateJWT middleware will handle the JWT verification
+        // If we reach this point, the user is authenticated
+        const user = (req as any).user; // user data from middleware
+        
+        if (!user) {
+            return res.status(401).json({ msg: "Not authenticated" });
+        }
+
+        // Return user data from JWT - no database call needed
+        return res.status(200).json({
+            msg: "Authenticated",
+            user: {
+                user_key: user.sub,
+                email: user.email,
+                username: user.username
+            }
+        });
     }
 
     async register(req: RegisterRequest, res: Response) {
