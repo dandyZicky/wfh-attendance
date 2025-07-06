@@ -8,7 +8,7 @@ import EmployeeManagement from './EmployeeManagement';
 const HRDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState<'dashboard' | 'attendance' | 'employees'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'attendance' | 'employees' | 'all-attendance'>('dashboard');
 
   const handleLogout = async () => {
     await logout();
@@ -39,6 +39,17 @@ const HRDashboard: React.FC = () => {
             <EmployeeManagement />
           </div>
         );
+      case 'all-attendance':
+        return (
+          <div>
+            <div className="mb-3">
+              <Button variant="outline-secondary" onClick={() => setActiveView('dashboard')}>
+                ← Back to Dashboard
+              </Button>
+            </div>
+            <AttendancePage />
+          </div>
+        );
       default:
         return (
           <Container>
@@ -50,7 +61,7 @@ const HRDashboard: React.FC = () => {
             </Row>
             
             <Row>
-              <Col md={4}>
+              <Col md={3}>
                 <Card className="h-100">
                   <Card.Body className="d-flex flex-column">
                     <Card.Title>Employee Management</Card.Title>
@@ -70,12 +81,12 @@ const HRDashboard: React.FC = () => {
                 </Card>
               </Col>
               
-              <Col md={4}>
+              <Col md={3}>
                 <Card className="h-100">
                   <Card.Body className="d-flex flex-column">
-                    <Card.Title>Attendance Overview</Card.Title>
+                    <Card.Title>My Attendance</Card.Title>
                     <Card.Text>
-                      View all employee attendance records, generate reports, and monitor WFH statistics.
+                      Submit your own daily attendance, view your records, and check your WFH statistics.
                     </Card.Text>
                     <div className="mt-auto">
                       <Button 
@@ -83,14 +94,34 @@ const HRDashboard: React.FC = () => {
                         onClick={() => setActiveView('attendance')}
                         className="w-100"
                       >
-                        View Attendance
+                        Submit My Attendance
                       </Button>
                     </div>
                   </Card.Body>
                 </Card>
               </Col>
               
-              <Col md={4}>
+              <Col md={3}>
+                <Card className="h-100">
+                  <Card.Body className="d-flex flex-column">
+                    <Card.Title>All Employee Attendance</Card.Title>
+                    <Card.Text>
+                      View all employee attendance records, monitor WFH statistics, and generate reports.
+                    </Card.Text>
+                    <div className="mt-auto">
+                      <Button 
+                        variant="warning" 
+                        onClick={() => setActiveView('all-attendance')}
+                        className="w-100"
+                      >
+                        View All Records
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+              
+              <Col md={3}>
                 <Card className="h-100">
                   <Card.Body className="d-flex flex-column">
                     <Card.Title>Reports & Analytics</Card.Title>
@@ -100,7 +131,7 @@ const HRDashboard: React.FC = () => {
                     <div className="mt-auto">
                       <Button 
                         variant="info" 
-                        onClick={() => setActiveView('attendance')}
+                        onClick={() => setActiveView('all-attendance')}
                         className="w-100"
                       >
                         Generate Reports
