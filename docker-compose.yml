@@ -32,9 +32,26 @@ services:
     networks:
       - app-network
 
+  attendance-db:
+    image: mysql:8.0
+    container_name: attendance-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: attendance_db
+      MYSQL_USER: attendance_user
+      MYSQL_PASSWORD: authpass
+    volumes:
+      - attendance_db_data:/var/lib/mysql
+      - ./attendance/db/attendance/init.sql:/docker-entrypoint-initdb.d/init.sql:z
+    ports:
+      - "3308:3306"
+    networks:
+      - app-network
+
 volumes:
   auth_credentials_db_data:
   user_management_db_data:
+  attendance_db_data:
 
 networks:
   app-network:
