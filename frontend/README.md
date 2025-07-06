@@ -1,43 +1,75 @@
-# Getting Started with Create React App
+# WFH Attendance Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the frontend application for the WFH Attendance system with authentication.
+
+## Features
+
+- **Authentication System**: Login/logout functionality with JWT cookies
+- **Protected Routes**: Dashboard is only accessible to authenticated users
+- **Responsive Design**: Built with React Bootstrap for mobile-friendly interface
+- **User Management**: Display user information and logout functionality
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+- The auth service running on localhost:3000
+
+### Installation
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Start the development server:
+```bash
+npm start
+```
+
+The application will run on `http://localhost:3002`
+
+### Authentication Flow
+
+1. **Login**: Users must log in at `/login` with their email and password
+2. **Authentication**: The system uses JWT cookies (`wfh-attendance-auth`) for session management
+3. **Protected Routes**: Unauthenticated users are redirected to `/login`
+4. **Logout**: Users can logout using the button in the navigation bar
+
+### API Endpoints
+
+The frontend communicates with the auth service at `http://localhost:3000`:
+
+- `POST /auth/login` - User login
+- `GET /auth/verify` - Verify authentication status
+- `POST /auth/logout` - User logout
+
+### Project Structure
+
+```
+src/
+├── components/
+│   ├── auth/
+│   │   └── LoginPage.tsx      # Login form component
+│   └── dashboard/
+│       └── Dashboard.tsx      # Main dashboard with logout
+├── context/
+│   └── AuthContext.tsx        # Authentication context provider
+└── App.tsx                    # Main app with routing
+```
 
 ## Available Scripts
 
-In the project directory, you can run:
+- `npm start` - Runs the app in development mode on port 3002
+- `npm run build` - Builds the app for production
+- `npm test` - Launches the test runner
+- `npm run eject` - Ejects from Create React App (not recommended)
 
-### `npm start`
+## Environment Variables
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+The app is configured to run on port 3002 by default. You can modify this in the `package.json` start script if needed.
 
 ## Learn More
 

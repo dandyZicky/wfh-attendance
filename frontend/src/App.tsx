@@ -1,37 +1,69 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoginPage from './components/auth/LoginPage';
+import Dashboard from './components/dashboard/Dashboard';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+
+// Protected Route Component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
+// Public Route Component (redirects to dashboard if already authenticated)
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
+};
 
 function App() {
   return (
-    <div className="App">
-      <Container className="mt-5">
-        <Row>
-          <Col md={6}>
-            <Card>
-              <Card.Body>
-                <Card.Title>WFH Attendance Submission</Card.Title>
-                <Card.Text>
-                  Submit your Work From Home attendance for the day.
-                </Card.Text>
-                <Button variant="primary">Submit</Button>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={6}>
-            <Card>
-              <Card.Body>
-                <Card.Title>WFH Attendance Viewer (HR Admin)</Card.Title>
-                <Card.Text>
-                  View all WFH attendance submissions.
-                </Card.Text>
-                <Button variant="secondary">View Submissions</Button>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
